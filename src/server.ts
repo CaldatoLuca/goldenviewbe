@@ -1,9 +1,11 @@
 import express, { type Request, type Response } from "express";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-import prisma from "./config/prisma.js";
+import morganMiddleware from "./middleware/morgan.js";
 
 const app = express();
+
+app.use(morganMiddleware);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Server is running");

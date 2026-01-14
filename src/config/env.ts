@@ -8,10 +8,6 @@ const envFile =
 
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
-console.log(`Environment: ${NODE_ENV}`);
-console.log(`Using env file: ${envFile}`);
-console.log(`PORT from env: ${process.env.PORT}`);
-
 export const config = {
   nodeEnv: NODE_ENV,
   port: Number(process.env.PORT) || 3001,

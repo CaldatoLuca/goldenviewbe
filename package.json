@@ -20,9 +20,11 @@
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "morgan": "^1.10.1",
     "prisma": "^7.2.0",
     "typescript": "^5.9.3",
     "winston": "^3.19.0"
