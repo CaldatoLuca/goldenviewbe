@@ -2,8 +2,10 @@ import app from "./server.js";
 import { config } from "./config/env.js";
 import Logger from "./utils/logger.js";
 
-Logger.debug(`Env: ${config.nodeEnv}`);
+Logger.info(`Env: ${config.nodeEnv}`);
+
+Logger.info(`----------------------`);
 
 app.listen(config.port, () => {
-  Logger.debug(`Server is up and running @ http://localhost:${config.port}`);
+  Logger.info(`Server is up and running @ http://localhost:${config.port}`);
 });
