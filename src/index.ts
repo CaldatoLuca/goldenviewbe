@@ -1,5 +1,11 @@
 import app from "./server.js";
+import { config } from "./config/env.js";
+import Logger from "./utils/logger.js";
 
-app.listen(3001, () => {
-  console.log("Server running on port 3001");
+Logger.info(`Env: ${config.nodeEnv}`);
+
+Logger.info(`----------------------`);
+
+app.listen(config.port, () => {
+  Logger.info(`Server is up and running @ http://localhost:${config.port}`);
 });
