@@ -1,11 +1,30 @@
-import type { Response } from "express";
+import type { Request, Response, NextFunction } from "express";
+import { AppError } from "../utils/AppError.js";
+import Logger from "../utils/logger.js";
 
-export const errorHandler = (err: any, res: Response) => {
-  const status = err.status || 500;
-  res.status(status).json({
+export function errorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  Logger.error(err);
+
+  if (err instanceof AppError) {
+    return res.status(err.status).json({
+      success: false,
+      error: {
+        message: err.message,
+        status: err.status,
+      },
+    });
+  }
+
+  res.status(500).json({
+    success: false,
     error: {
-      message: err.message,
-      status,
+      message: "Errore interno del server",
+      status: 500,
     },
   });
-};
+}
