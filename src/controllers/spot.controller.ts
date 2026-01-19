@@ -3,15 +3,19 @@ import { SpotService } from "../services/spot.service.js";
 
 const spotService = new SpotService();
 
-export const getAll = async (
+export const getNonActiveSpots = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    const spots = await spotService.getAll();
-    res.json(spots);
-  } catch (err) {
-    next(err);
+    const spots = await spotService.findMany({});
+
+    res.status(200).json({
+      success: true,
+      spots,
+    });
+  } catch (error: any) {
+    next(error);
   }
 };

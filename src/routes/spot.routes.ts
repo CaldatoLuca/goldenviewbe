@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { getAll } from "../controllers/spot.controller.js";
-
 const router = Router();
+import { getNonActiveSpots } from "../controllers/spot.controller.js";
 
-router.get("/", getAll);
+router.get("/non-active", getNonActiveSpots);
 
 export default router;
