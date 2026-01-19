@@ -1,8 +1,7 @@
 import { Router } from "express";
+const router = Router();
 import { getAll } from "../controllers/spot.controller.js";
 
-const router = Router();
-
-router.get("/", getAll);
+router.get("/get-all", getAll);
 
 export default router;
