@@ -2,6 +2,8 @@ import express, { type Request, type Response } from "express";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import morganMiddleware from "./middleware/morgan.js";
+import { createRouteHandler } from "uploadthing/express";
+import { uploadRouter } from "./utils/uploadthing.js";
 
 import spotRoutes from "./routes/spot.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -14,6 +16,13 @@ app.use(morganMiddleware);
 app.get("/", (req: Request, res: Response) => {
   res.send("Server is running");
 });
+
+app.use(
+  "/api/uploadthing",
+  createRouteHandler({
+    router: uploadRouter,
+  }),
+);
 
 app.use("/auth", authRoutes);
 app.use("/spots", spotRoutes);

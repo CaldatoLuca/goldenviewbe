@@ -10,6 +10,5 @@ router.post(
   validate(z.object({ body: registerSchema })),
   register,
 );
-router.post("/register", register);
 
 export default router;

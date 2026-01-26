@@ -1,5 +1,4 @@
 import { userService } from "./user.service.js";
-import dayjs from "dayjs";
 import z from "zod/v3";
 
 export const registerSchema = z.object({
@@ -16,6 +15,8 @@ export class AuthService {
         password: data.password,
         username: data.username,
         role: "USER",
+        image:
+          "https://48zpjaa0fz.ufs.sh/f/3cZkC2bzvKBXIn0UYTMp6W3E0YAPlrsZ7IBHC1XagVxwUftD",
       },
     });
 

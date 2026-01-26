@@ -3,11 +3,11 @@ import { authService } from "../services/auth.service.js";
 import { userService } from "../services/user.service.js";
 import { AppError } from "../utils/AppError.js";
 import { genSalt, hash } from "bcrypt-ts";
-import type { RegisterRequest } from "../types/auth.types.js";
+import type { RegisterRequest, RegisterResponse } from "../types/auth.types.js";
 
 export const register = async (
   req: Request<{}, {}, RegisterRequest>,
-  res: Response,
+  res: Response<RegisterResponse>,
   next: NextFunction,
 ) => {
   try {
