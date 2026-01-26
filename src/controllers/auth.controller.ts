@@ -3,20 +3,15 @@ import { authService } from "../services/auth.service.js";
 import { userService } from "../services/user.service.js";
 import { AppError } from "../utils/AppError.js";
 import { genSalt, hash } from "bcrypt-ts";
-
-interface RegisterBody {
-  email: string;
-  name: string;
-  password: string;
-}
+import type { RegisterRequest } from "../types/auth.types.js";
 
 export const register = async (
-  req: Request<{}, {}, RegisterBody>,
+  req: Request<{}, {}, RegisterRequest>,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { email, name, password } = req.body;
+    const { email, username, password } = req.body;
 
     const existing = await userService.findByEmail(email);
     if (existing) {
@@ -28,7 +23,7 @@ export const register = async (
 
     const user = await authService.register({
       email,
-      name,
+      username,
       password: hashedPassword,
     });
 
