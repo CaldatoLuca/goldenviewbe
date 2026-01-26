@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { register, login } from "../controllers/auth.controller.js";
-import { validate } from "../middleware/validate.js";
+import { validate } from "../middleware/validate.middleware.js";
 import { registerSchema, loginSchema } from "../schemas/auth.schemas.js";
 import z from "zod/v3";
 

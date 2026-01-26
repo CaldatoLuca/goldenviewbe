@@ -1,7 +1,7 @@
 import express, { type Request, type Response } from "express";
-import { notFound } from "./middleware/notFound.js";
-import { errorHandler } from "./middleware/errorHandler.js";
-import morganMiddleware from "./middleware/morgan.js";
+import { notFound } from "./middleware/notfound.middleware.js";
+import { errorHandler } from "./middleware/error.middleware.js";
+import morganMiddleware from "./middleware/morgan.middleaware.js";
 import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./utils/uploadthing.js";
 
