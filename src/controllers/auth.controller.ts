@@ -7,11 +7,15 @@ export const register = async (
   next: NextFunction,
 ) => {
   try {
-    const user = await authService.register(req.body);
+    const { user, accessToken, refreshToken } = await authService.register(
+      req.body,
+    );
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       user,
+      accessToken,
+      refreshToken,
     });
   } catch (error) {
     next(error);
@@ -24,11 +28,15 @@ export const login = async (
   next: NextFunction,
 ) => {
   try {
-    const user = await authService.login(req.body);
+    const { user, accessToken, refreshToken } = await authService.login(
+      req.body,
+    );
 
     res.status(200).json({
       success: true,
       user,
+      accessToken,
+      refreshToken,
     });
   } catch (error) {
     next(error);

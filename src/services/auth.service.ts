@@ -1,6 +1,7 @@
 import { userService } from "./user.service.js";
 import { AppError } from "../utils/AppError.js";
 import { genSalt, hash, compare } from "bcrypt-ts";
+import { tokenService } from "./token.services.js";
 
 export class AuthService {
   async register(data: { email: string; password: string; username: string }) {
@@ -10,7 +11,9 @@ export class AuthService {
     }
 
     const salt = await genSalt(10);
-    const hashedPassword = await hash(data.password, salt);
+    const hashedPassword = data.password
+      ? await hash(data.password, salt)
+      : null;
 
     const user = await userService.create({
       data: {
@@ -23,26 +26,34 @@ export class AuthService {
       },
     });
 
-    return user;
+    const accessToken = tokenService.generateAccessToken({ id: user.id });
+    const refreshToken = tokenService.generateRefreshToken({ id: user.id });
+
+    return { user, accessToken, refreshToken };
   }
 
-  async login(data: { email: string; password: string }) {
+  async login(data: { email: string; password?: string }) {
     const user = await userService.findByEmail(data.email);
-
     if (!user) {
       throw new AppError("Invalid credentials", 401);
     }
 
-    if (!user.password) {
-      throw new AppError("User registered via OAuth", 401);
+    if (user.password) {
+      const validPassword = await compare(data.password || "", user.password);
+      if (!validPassword) throw new AppError("Invalid credentials", 401);
+    } else {
+      // utente OAuth
+      if (!data.password) {
+        // login OAuth via backend
+      } else {
+        throw new AppError("User registered via OAuth, use OAuth login", 401);
+      }
     }
 
-    const validPassword = await compare(data.password, user.password);
-    if (!validPassword) {
-      throw new AppError("Invalid credentials", 401);
-    }
+    const accessToken = tokenService.generateAccessToken({ id: user.id });
+    const refreshToken = tokenService.generateRefreshToken({ id: user.id });
 
-    return user;
+    return { user, accessToken, refreshToken };
   }
 }
 
