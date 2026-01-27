@@ -11,11 +11,11 @@ const ACCESS_SECRET = config.jwtAccess;
 const REFRESH_SECRET = config.jwtRefresh;
 
 export class TokenService {
-  generateAccessToken(payload: object) {
+  generateAccessToken(payload: JwtPayloadType) {
     return jwt.sign(payload, ACCESS_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRE });
   }
 
-  generateRefreshToken(payload: object) {
+  generateRefreshToken(payload: JwtPayloadType) {
     return jwt.sign(payload, REFRESH_SECRET, {
       expiresIn: REFRESH_TOKEN_EXPIRE,
     });

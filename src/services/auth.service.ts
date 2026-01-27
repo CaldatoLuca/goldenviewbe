@@ -29,6 +29,15 @@ export class AuthService {
     const accessToken = tokenService.generateAccessToken({ id: user.id });
     const refreshToken = tokenService.generateRefreshToken({ id: user.id });
 
+    const refreshHash = await hash(refreshToken, 10);
+
+    await userService.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: refreshHash,
+      },
+    });
+
     return { user, accessToken, refreshToken };
   }
 
@@ -53,7 +62,51 @@ export class AuthService {
     const accessToken = tokenService.generateAccessToken({ id: user.id });
     const refreshToken = tokenService.generateRefreshToken({ id: user.id });
 
+    const refreshHash = await hash(refreshToken, 10);
+
+    await userService.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: refreshHash,
+      },
+    });
+
     return { user, accessToken, refreshToken };
+  }
+
+  async refreshFromToken(refreshToken?: string) {
+    if (!refreshToken) {
+      throw new AppError("Refresh token missing", 401);
+    }
+
+    const payload = tokenService.verifyRefreshToken(refreshToken);
+
+    const user = await userService.findById(payload.id);
+    if (!user || !user.refreshToken) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const valid = await compare(refreshToken, user.refreshToken);
+    if (!valid) {
+      throw new AppError("Token reuse detected", 401);
+    }
+
+    const newAccessToken = tokenService.generateAccessToken({ id: user.id });
+    const newRefreshToken = tokenService.generateRefreshToken({ id: user.id });
+
+    const newRefreshHash = await hash(newRefreshToken, 10);
+
+    await userService.update({
+      where: { id: user.id },
+      data: {
+        refreshToken: newRefreshHash,
+      },
+    });
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 }
 

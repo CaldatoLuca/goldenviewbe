@@ -4,12 +4,15 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import morganMiddleware from "./middleware/morgan.middleaware.js";
 import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./utils/uploadthing.js";
+import cookieParser from "cookie-parser";
 
 import spotRoutes from "./routes/spot.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(morganMiddleware);
 
@@ -26,6 +29,7 @@ app.use(
 
 app.use("/auth", authRoutes);
 app.use("/spots", spotRoutes);
+app.use("/users", userRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

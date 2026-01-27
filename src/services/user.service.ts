@@ -11,6 +11,12 @@ export class UserService extends BaseService<typeof prisma.user> {
       where: { email },
     });
   }
+
+  async findById(id: string) {
+    return this.model.findUnique({
+      where: { id },
+    });
+  }
 }
 
 export const userService = new UserService();
