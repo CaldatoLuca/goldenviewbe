@@ -1,7 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { SpotService } from "../services/spot.service.js";
-
-const spotService = new SpotService();
+import { spotService } from "../services/spot.service.js";
 
 export const getAll = async (
   req: Request,

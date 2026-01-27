@@ -12,4 +12,7 @@ export const config = {
   nodeEnv: NODE_ENV,
   port: Number(process.env.PORT) || 3001,
   databaseUrl: process.env.DATABASE_URL!,
+  uplouploadthingToken: process.env.UPLOADTHING_TOKEN,
+  jwtAccess: process.env.JWT_ACCESS_SECRET!,
+  jwtRefresh: process.env.JWT_REFRESH_SECRET!,
 };
