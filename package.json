@@ -11,7 +11,13 @@
     "prod": "npm run build && npm run start",
     "prisma:pull:dev": "dotenv -e .env.development -- npx prisma db pull",
     "prisma:pull:prod": "dotenv -e .env.production -- npx prisma db pull",
-    "prisma:generate": "npx prisma generate"
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
+    "prisma:migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
+    "prisma:studio:dev": "dotenv -e .env.development -- npx prisma studio",
+    "prisma:studio:prod": "dotenv -e .env.production -- npx prisma studio",
+    "prisma:reset:dev": "dotenv -e .env.development -- npx prisma migrate reset --force",
+    "prisma:reset:prod": "dotenv -e .env.production -- npx prisma migrate reset --force"
   },
   "type": "module",
   "keywords": [],
