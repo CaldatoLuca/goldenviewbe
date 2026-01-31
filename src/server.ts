@@ -5,12 +5,29 @@ import morganMiddleware from "./middleware/morgan.middleaware.js";
 import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./utils/uploadthing.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 import spotRoutes from "./routes/spot.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 
 const app = express();
+
+const allowedOrigins = ["http://localhost:3000", "https://tuodominio.com"];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 app.use(cookieParser());
 

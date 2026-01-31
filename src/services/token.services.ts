@@ -4,7 +4,7 @@ const jwt = jwtPkg as typeof import("jsonwebtoken");
 import { config } from "../config/env.js";
 import type { JwtPayloadType } from "../types/jwt.types.js";
 
-const ACCESS_TOKEN_EXPIRE = "15m";
+const ACCESS_TOKEN_EXPIRE = "5s";
 const REFRESH_TOKEN_EXPIRE = "30d";
 
 const ACCESS_SECRET = config.jwtAccess;
