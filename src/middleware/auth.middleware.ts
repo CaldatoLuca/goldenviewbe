@@ -1,27 +1,51 @@
 import type { Request, Response, NextFunction } from "express";
 import { tokenService } from "../services/token.services.js";
 import { AppError } from "../utils/AppError.js";
+import { authService } from "../services/auth.service.js";
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
-  _res: Response,
+  res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers.authorization;
+  const accessToken = req.cookies?.accessToken;
+  const refreshToken = req.cookies?.refreshToken;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new AppError("Unauthorized", 401);
+  if (!accessToken && !refreshToken) {
+    return next(new AppError("Unauthorized", 401));
   }
 
-  const token = authHeader.split(" ")[1];
-
   try {
-    const payload = tokenService.verifyAccessToken(token!);
-
+    const payload = tokenService.verifyAccessToken(accessToken);
     req.userId = payload.id;
-
     next();
   } catch {
-    throw new AppError("Invalid or expired token", 401);
+    try {
+      if (!refreshToken) {
+        throw new AppError("Unauthorized", 401);
+      }
+
+      const tokens = await authService.refreshFromToken(refreshToken);
+
+      res.cookie("accessToken", tokens.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 15 * 60 * 1000,
+      });
+
+      res.cookie("refreshToken", tokens.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+
+      const payload = tokenService.verifyAccessToken(tokens.accessToken);
+      req.userId = payload.id;
+      next();
+    } catch {
+      return next(new AppError("Unauthorized", 401));
+    }
   }
 };

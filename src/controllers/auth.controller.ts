@@ -17,8 +17,15 @@ export const register = async (
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: config.nodeEnv === "production",
-      sameSite: "strict",
+      sameSite: config.nodeEnv === "production" ? "none" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: config.nodeEnv === "production",
+      sameSite: config.nodeEnv === "production" ? "none" : "lax",
+      maxAge: 15 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -47,8 +54,15 @@ export const login = async (
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: config.nodeEnv === "production",
-      sameSite: "strict",
+      sameSite: config.nodeEnv === "production" ? "none" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: config.nodeEnv === "production",
+      sameSite: config.nodeEnv === "production" ? "none" : "lax",
+      maxAge: 15 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -74,8 +88,15 @@ export const refresh = async (
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
       secure: config.nodeEnv === "production",
-      sameSite: "strict",
+      sameSite: config.nodeEnv === "production" ? "none" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("accessToken", tokens.accessToken, {
+      httpOnly: true,
+      secure: config.nodeEnv === "production",
+      sameSite: config.nodeEnv === "production" ? "none" : "lax",
+      maxAge: 15 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -104,10 +125,16 @@ export const logout = async (
       });
     }
 
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: config.nodeEnv === "production",
+      sameSite: config.nodeEnv === "production" ? "none" : "lax",
+    });
+
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: config.nodeEnv === "production",
-      sameSite: "strict",
+      sameSite: config.nodeEnv === "production" ? "none" : "lax",
     });
 
     res.status(200).json({

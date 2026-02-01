@@ -7,7 +7,7 @@ export const me = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.userId;
 
     if (!userId) {
-      throw new AppError("Unauthorized", 401);
+      throw new AppError("Unauthorized: user not found", 401);
     }
 
     const user = await userService.findById(userId);
