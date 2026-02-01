@@ -13,7 +13,10 @@ import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 
-const allowedOrigins = ["http://localhost:3000", "https://tuodominio.com"];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://goldenview-admin.netlify.app/",
+];
 
 app.use(
   cors({
