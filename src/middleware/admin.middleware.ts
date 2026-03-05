@@ -14,7 +14,7 @@ export const adminMiddleware = async (
 
     const user = await userService.findById(req.userId);
 
-    if (user.role !== "ADMIN") {
+    if (!user || user.role !== "ADMIN") {
       return next(new AppError("Forbidden", 403));
     }
 
