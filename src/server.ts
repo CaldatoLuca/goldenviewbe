@@ -6,10 +6,13 @@ import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./utils/uploadthing.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
 
 import spotRoutes from "./routes/spot.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import tagRoutes from "./routes/tag.routes.js";
 
 const app = express();
 
@@ -42,6 +45,8 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Server is running");
 });
 
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use(
   "/api/uploadthing",
   createRouteHandler({
@@ -52,6 +57,7 @@ app.use(
 app.use("/auth", authRoutes);
 app.use("/spots", spotRoutes);
 app.use("/users", userRoutes);
+app.use("/tags", tagRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
