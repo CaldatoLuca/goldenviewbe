@@ -10,6 +10,7 @@ import cors from "cors";
 import spotRoutes from "./routes/spot.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import tagRoutes from "./routes/tag.routes.js";
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use(
 app.use("/auth", authRoutes);
 app.use("/spots", spotRoutes);
 app.use("/users", userRoutes);
+app.use("/tags", tagRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
