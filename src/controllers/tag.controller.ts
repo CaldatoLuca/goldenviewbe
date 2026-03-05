@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { tagService } from "../services/tag.service.js";
+import { AppError } from "../utils/AppError.js";
 
 export const getAll = async (
   req: Request,
@@ -10,9 +11,7 @@ export const getAll = async (
     const tags = await tagService.findMany({});
 
     if (!tags.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "No tags found" });
+      return res.status(404).json({ success: false, message: "No tags found" });
     }
 
     res.status(200).json({
@@ -31,7 +30,8 @@ export const getById = async (
   next: NextFunction,
 ) => {
   try {
-    const tag = await tagService.findById(req.params.id);
+    const { id } = req.params as { id: string };
+    const tag = await tagService.findById(id);
 
     res.status(200).json({ success: true, tag });
   } catch (error: any) {
