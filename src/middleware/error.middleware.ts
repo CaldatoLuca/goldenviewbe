@@ -23,7 +23,7 @@ export function errorHandler(
   res.status(500).json({
     success: false,
     error: {
-      message: "Errore interno del server",
+      message: "Internal server error",
       status: 500,
     },
   });

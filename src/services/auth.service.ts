@@ -26,8 +26,8 @@ export class AuthService {
       },
     });
 
-    const accessToken = tokenService.generateAccessToken({ id: user.id });
-    const refreshToken = tokenService.generateRefreshToken({ id: user.id });
+    const accessToken = tokenService.generateAccessToken({ id: user.id, role: user.role });
+    const refreshToken = tokenService.generateRefreshToken({ id: user.id, role: user.role });
 
     const refreshHash = await hash(refreshToken, 10);
 
@@ -59,8 +59,8 @@ export class AuthService {
       }
     }
 
-    const accessToken = tokenService.generateAccessToken({ id: user.id });
-    const refreshToken = tokenService.generateRefreshToken({ id: user.id });
+    const accessToken = tokenService.generateAccessToken({ id: user.id, role: user.role });
+    const refreshToken = tokenService.generateRefreshToken({ id: user.id, role: user.role });
 
     const refreshHash = await hash(refreshToken, 10);
 
@@ -91,8 +91,8 @@ export class AuthService {
       throw new AppError("Token reuse detected", 401);
     }
 
-    const newAccessToken = tokenService.generateAccessToken({ id: user.id });
-    const newRefreshToken = tokenService.generateRefreshToken({ id: user.id });
+    const newAccessToken = tokenService.generateAccessToken({ id: user.id, role: user.role });
+    const newRefreshToken = tokenService.generateRefreshToken({ id: user.id, role: user.role });
 
     const newRefreshHash = await hash(newRefreshToken, 10);
 

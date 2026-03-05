@@ -1,13 +1,14 @@
 import express, { type Request, type Response } from "express";
 import { notFound } from "./middleware/notfound.middleware.js";
 import { errorHandler } from "./middleware/error.middleware.js";
-import morganMiddleware from "./middleware/morgan.middleaware.js";
+import morganMiddleware from "./middleware/morgan.middleware.js";
 import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./utils/uploadthing.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
+import helmet from "helmet";
 
 import spotRoutes from "./routes/spot.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -36,6 +37,7 @@ app.use(
   }),
 );
 
+app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 

@@ -11,7 +11,7 @@ export const getAll = async (
     const tags = await tagService.findMany({});
 
     if (!tags.length) {
-      return res.status(404).json({ success: false, message: "No tags found" });
+      return next(new AppError("No tags found", 404));
     }
 
     res.status(200).json({
@@ -59,8 +59,9 @@ export const update = async (
   next: NextFunction,
 ) => {
   try {
+    const { id } = req.params as { id: string };
     const tag = await tagService.update({
-      where: { id: req.params.id },
+      where: { id },
       data: req.body,
     });
 
@@ -76,7 +77,8 @@ export const remove = async (
   next: NextFunction,
 ) => {
   try {
-    await tagService.delete({ where: { id: req.params.id } });
+    const { id } = req.params as { id: string };
+    await tagService.delete({ where: { id } });
 
     res.status(200).json({ success: true, message: "Tag deleted" });
   } catch (error: any) {

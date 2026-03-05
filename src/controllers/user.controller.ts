@@ -24,3 +24,20 @@ export const me = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
+
+export const updateMe = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const user = await userService.update({
+      where: { id: req.userId },
+      data: req.body,
+    });
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    next(error);
+  }
+};

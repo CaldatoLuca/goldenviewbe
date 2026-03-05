@@ -329,7 +329,7 @@ const options: swaggerJsdoc.Options = {
           summary: "Get all spots",
           responses: {
             "200": {
-              description: "List of all spots",
+              description: "List of all spots (includes tags)",
               content: {
                 "application/json": {
                   schema: {
@@ -358,6 +358,291 @@ const options: swaggerJsdoc.Options = {
                 },
               },
             },
+          },
+        },
+      },
+      "/spots/slug/{slug}": {
+        get: {
+          tags: ["Spots"],
+          summary: "Get a spot by slug",
+          parameters: [
+            { name: "slug", in: "path", required: true, schema: { type: "string" }, example: "golden-beach-1700000000000" },
+          ],
+          responses: {
+            "200": {
+              description: "Spot found",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "404": {
+              description: "Spot not found",
+              content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } },
+            },
+          },
+        },
+      },
+      "/spots/{id}": {
+        get: {
+          tags: ["Spots"],
+          summary: "Get a spot by ID",
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          responses: {
+            "200": {
+              description: "Spot found",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "404": {
+              description: "Spot not found",
+              content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } },
+            },
+          },
+        },
+        put: {
+          tags: ["Spots"],
+          summary: "Update a spot",
+          description: "Only the spot owner or an admin can update.",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string", example: "Updated Beach" },
+                    address: { type: "string", example: "Via del Mare 2" },
+                    place: { type: "string", example: "Sardegna" },
+                    description: { type: "string", example: "Updated description" },
+                    images: { type: "array", items: { type: "string" } },
+                    latitude: { type: "number", example: 39.2238 },
+                    longitude: { type: "number", example: 9.1217 },
+                    public: { type: "boolean", example: true },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Spot updated",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ValidationErrorResponse" } } } },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden — not the owner or admin", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+        delete: {
+          tags: ["Spots"],
+          summary: "Delete a spot",
+          description: "Only the spot owner or an admin can delete.",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          responses: {
+            "200": {
+              description: "Spot deleted",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { message: { type: "string", example: "Spot deleted" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots": {
+        post: {
+          tags: ["Spots"],
+          summary: "Create a new spot",
+          security: [{ cookieAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["name"],
+                  properties: {
+                    name: { type: "string", example: "Golden Beach" },
+                    address: { type: "string", example: "Via del Mare 1" },
+                    place: { type: "string", example: "Sardegna" },
+                    description: { type: "string", example: "A beautiful golden beach" },
+                    images: { type: "array", items: { type: "string" }, example: [] },
+                    latitude: { type: "number", example: 39.2238 },
+                    longitude: { type: "number", example: 9.1217 },
+                    public: { type: "boolean", example: true },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "201": {
+              description: "Spot created. Slug is auto-generated from the name.",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ValidationErrorResponse" } } } },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/{id}/tags": {
+        post: {
+          tags: ["Spots"],
+          summary: "Add a tag to a spot",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["tagId"],
+                  properties: {
+                    tagId: { type: "string", example: "cltag789" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Tag added to spot",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden — admin role required", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "Spot or tag not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/{id}/tags/{tagId}": {
+        delete: {
+          tags: ["Spots"],
+          summary: "Remove a tag from a spot",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+            { name: "tagId", in: "path", required: true, schema: { type: "string" }, example: "cltag789" },
+          ],
+          responses: {
+            "200": {
+              description: "Tag removed from spot",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden — admin role required", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/users/me/update": {
+        patch: {
+          tags: ["Users"],
+          summary: "Update current user profile",
+          security: [{ cookieAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    username: { type: "string", minLength: 3, maxLength: 30, example: "newusername" },
+                    image: { type: "string", format: "uri", example: "https://cdn.example.com/avatar.png" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Profile updated",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ValidationErrorResponse" } } } },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
           },
         },
       },

@@ -25,6 +25,9 @@ export class BaseService<T extends PrismaDelegate> {
   }
 
   private handleError(error: any, operation: operationT): never {
+    if (error instanceof AppError) {
+      throw error;
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       const handler = ERROR_MAP[error.code as PrismaErrorCode];
       if (handler) {

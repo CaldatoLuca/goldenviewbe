@@ -18,6 +18,7 @@ export const authMiddleware = async (
   try {
     const payload = tokenService.verifyAccessToken(accessToken);
     req.userId = payload.id;
+    req.userRole = payload.role;
     next();
   } catch {
     try {
@@ -43,6 +44,7 @@ export const authMiddleware = async (
 
       const payload = tokenService.verifyAccessToken(tokens.accessToken);
       req.userId = payload.id;
+      req.userRole = payload.role;
       next();
     } catch {
       return next(new AppError("Unauthorized", 401));
