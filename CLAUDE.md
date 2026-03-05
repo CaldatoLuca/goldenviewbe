@@ -39,9 +39,10 @@ src/
 │   ├── base.service.ts      # Generic CRUD template extended by other services
 │   ├── auth.service.ts      # Register, login, refresh, logout logic
 │   ├── token.services.ts    # JWT generation and verification
-│   └── ...                  # user.service.ts, spot.service.ts
+│   └── ...                  # user.service.ts, spot.service.ts, tag.service.ts
 ├── middleware/
 │   ├── auth.middleware.ts   # JWT verification + automatic access token refresh
+│   ├── admin.middleware.ts  # Restricts route to ADMIN role
 │   ├── validate.middleware.ts # Zod schema validation
 │   └── error.middleware.ts  # Global error handler
 ├── schemas/                 # Zod validation schemas
@@ -54,7 +55,8 @@ src/
 ## Database Models
 
 - **User**: id (CUID), username, email (unique), password (bcrypt), image, role (USER/ADMIN), refreshToken (hashed), emailVerified
-- **Spot**: id, name, address, place, description, userId (FK→User, cascade delete), images[], latitude, longitude, public, active, slug (unique)
+- **Spot**: id, name, address, place, description, userId (FK→User, cascade delete), images[], latitude, longitude, public, active, slug (unique), tags (M2M→Tag)
+- **Tag**: id (CUID), name (unique, max 50 chars), createdAt, updatedAt — many-to-many with Spot
 
 ## Authentication
 
@@ -73,6 +75,11 @@ src/
 | POST | /auth/logout | No | Logout |
 | GET | /users/me | Yes | Current user profile |
 | GET | /spots/get-all | No | All spots |
+| GET | /tags/get-all | Yes + Admin | All tags |
+| GET | /tags/:id | Yes + Admin | Tag by ID |
+| POST | /tags | Yes + Admin | Create tag (name 1-50 chars) |
+| PUT | /tags/:id | Yes + Admin | Update tag |
+| DELETE | /tags/:id | Yes + Admin | Delete tag |
 | POST/GET | /api/uploadthing | Yes | File uploads (max 4MB, images only) |
 
 ## Environment Variables

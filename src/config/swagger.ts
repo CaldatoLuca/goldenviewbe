@@ -58,6 +58,15 @@ const options: swaggerJsdoc.Options = {
             slug: { type: "string", example: "golden-beach" },
           },
         },
+        Tag: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "cltag789" },
+            name: { type: "string", example: "sunset" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
         SuccessResponse: {
           type: "object",
           properties: {
@@ -343,6 +352,325 @@ const options: swaggerJsdoc.Options = {
             },
             "404": {
               description: "No spots found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/tags/get-all": {
+        get: {
+          tags: ["Tags"],
+          summary: "Get all tags",
+          description: "Returns all tags. Requires authentication and admin role.",
+          security: [{ cookieAuth: [] }],
+          responses: {
+            "200": {
+              description: "List of all tags",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      {
+                        type: "object",
+                        properties: {
+                          total: { type: "integer", example: 3 },
+                          tags: {
+                            type: "array",
+                            items: { $ref: "#/components/schemas/Tag" },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": {
+              description: "Not authenticated",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "403": {
+              description: "Forbidden — admin role required",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "404": {
+              description: "No tags found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/tags/{id}": {
+        get: {
+          tags: ["Tags"],
+          summary: "Get a tag by ID",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "cltag789",
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Tag found",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      {
+                        type: "object",
+                        properties: {
+                          tag: { $ref: "#/components/schemas/Tag" },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": {
+              description: "Not authenticated",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "403": {
+              description: "Forbidden — admin role required",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "404": {
+              description: "Tag not found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+        put: {
+          tags: ["Tags"],
+          summary: "Update a tag by ID",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "cltag789",
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["name"],
+                  properties: {
+                    name: { type: "string", minLength: 1, maxLength: 50, example: "beach" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Tag updated successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      {
+                        type: "object",
+                        properties: {
+                          tag: { $ref: "#/components/schemas/Tag" },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            "400": {
+              description: "Validation error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ValidationErrorResponse" },
+                },
+              },
+            },
+            "401": {
+              description: "Not authenticated",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "403": {
+              description: "Forbidden — admin role required",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "404": {
+              description: "Tag not found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+        delete: {
+          tags: ["Tags"],
+          summary: "Delete a tag by ID",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "cltag789",
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Tag deleted successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      {
+                        type: "object",
+                        properties: {
+                          message: { type: "string", example: "Tag deleted" },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": {
+              description: "Not authenticated",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "403": {
+              description: "Forbidden — admin role required",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "404": {
+              description: "Tag not found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/tags": {
+        post: {
+          tags: ["Tags"],
+          summary: "Create a new tag",
+          security: [{ cookieAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["name"],
+                  properties: {
+                    name: { type: "string", minLength: 1, maxLength: 50, example: "sunset" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "201": {
+              description: "Tag created successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      {
+                        type: "object",
+                        properties: {
+                          tag: { $ref: "#/components/schemas/Tag" },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            "400": {
+              description: "Validation error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ValidationErrorResponse" },
+                },
+              },
+            },
+            "401": {
+              description: "Not authenticated",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            "403": {
+              description: "Forbidden — admin role required",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
