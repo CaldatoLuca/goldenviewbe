@@ -6,6 +6,8 @@ import { createRouteHandler } from "uploadthing/express";
 import { uploadRouter } from "./utils/uploadthing.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
 
 import spotRoutes from "./routes/spot.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -41,6 +43,8 @@ app.use(morganMiddleware);
 app.get("/", (req: Request, res: Response) => {
   res.send("Server is running");
 });
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(
   "/api/uploadthing",
