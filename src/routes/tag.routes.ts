@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { validate } from "../middleware/validate.middleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
+import { adminMiddleware } from "../middleware/admin.middleware.js";
 import { createTagSchema, updateTagSchema } from "../schemas/tag.schemas.js";
 import {
   getAll,
@@ -11,6 +13,8 @@ import {
 import z from "zod/v3";
 
 const router = Router();
+
+router.use(authMiddleware, adminMiddleware);
 
 router.get("/get-all", getAll);
 router.get("/:id", getById);
