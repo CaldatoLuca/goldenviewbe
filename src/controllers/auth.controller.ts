@@ -108,6 +108,52 @@ export const refresh = async (
   }
 };
 
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { token } = req.body;
+    await authService.verifyEmail(token);
+    res.status(200).json({ success: true, message: "Email verified" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email } = req.body;
+    await authService.forgotPassword(email);
+    // Always respond 200 to avoid user enumeration
+    res.status(200).json({
+      success: true,
+      message: "If that email exists you will receive a reset link",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { token, password } = req.body;
+    await authService.resetPassword(token, password);
+    res.status(200).json({ success: true, message: "Password reset" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const logout = async (
   req: Request,
   res: Response,
