@@ -67,6 +67,15 @@ const options: swaggerJsdoc.Options = {
             updatedAt: { type: "string", format: "date-time" },
           },
         },
+        PaginationMeta: {
+          type: "object",
+          properties: {
+            total: { type: "integer", example: 42 },
+            page: { type: "integer", example: 1 },
+            pageSize: { type: "integer", example: 20 },
+            totalPages: { type: "integer", example: 3 },
+          },
+        },
         SuccessResponse: {
           type: "object",
           properties: {
@@ -323,13 +332,21 @@ const options: swaggerJsdoc.Options = {
           },
         },
       },
-      "/spots/get-all": {
+      "/spots/nearby": {
         get: {
           tags: ["Spots"],
-          summary: "Get all spots",
+          summary: "Find spots near a coordinate (Haversine)",
+          description: "Returns public active spots within a given radius from the provided coordinates, sorted by distance ascending. Distance is calculated using the Haversine formula.",
+          parameters: [
+            { name: "lat", in: "query", required: true, schema: { type: "number", minimum: -90, maximum: 90 }, example: 39.2238, description: "Latitude of the search centre" },
+            { name: "lon", in: "query", required: true, schema: { type: "number", minimum: -180, maximum: 180 }, example: 9.1217, description: "Longitude of the search centre" },
+            { name: "radius", in: "query", schema: { type: "number", default: 10, maximum: 500 }, description: "Search radius in kilometres (default 10, max 500)" },
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "Page number (1-based)" },
+            { name: "pageSize", in: "query", schema: { type: "integer", default: 20, maximum: 100 }, description: "Items per page (max 100)" },
+          ],
           responses: {
             "200": {
-              description: "List of all spots",
+              description: "Spots within radius, sorted by distance",
               content: {
                 "application/json": {
                   schema: {
@@ -338,10 +355,26 @@ const options: swaggerJsdoc.Options = {
                       {
                         type: "object",
                         properties: {
-                          total: { type: "integer", example: 3 },
+                          center: {
+                            type: "object",
+                            properties: {
+                              lat: { type: "number", example: 39.2238 },
+                              lon: { type: "number", example: 9.1217 },
+                            },
+                          },
+                          radiusKm: { type: "number", example: 10 },
+                          total: { type: "integer", example: 5 },
+                          page: { type: "integer", example: 1 },
+                          pageSize: { type: "integer", example: 20 },
+                          totalPages: { type: "integer", example: 1 },
                           spots: {
                             type: "array",
-                            items: { $ref: "#/components/schemas/Spot" },
+                            items: {
+                              allOf: [
+                                { $ref: "#/components/schemas/Spot" },
+                                { type: "object", properties: { distanceKm: { type: "number", example: 2.34, description: "Distance from the search centre in km" } } },
+                              ],
+                            },
                           },
                         },
                       },
@@ -350,14 +383,326 @@ const options: swaggerJsdoc.Options = {
                 },
               },
             },
-            "404": {
-              description: "No spots found",
+            "400": { description: "Missing or invalid query parameters", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "No spots found within the given radius", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/get-all": {
+        get: {
+          tags: ["Spots"],
+          summary: "Get all public active spots",
+          description: "Returns paginated spots that are both public and active. No authentication required.",
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "Page number (1-based)" },
+            { name: "pageSize", in: "query", schema: { type: "integer", default: 20, maximum: 100 }, description: "Items per page (max 100)" },
+          ],
+          responses: {
+            "200": {
+              description: "Paginated list of public active spots",
               content: {
                 "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { $ref: "#/components/schemas/PaginationMeta" },
+                      { type: "object", properties: { spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } } } },
+                    ],
+                  },
                 },
               },
             },
+            "404": { description: "No spots found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/admin/all": {
+        get: {
+          tags: ["Spots"],
+          summary: "Get all spots (admin)",
+          description: "Returns paginated spots regardless of public/active status. Requires authentication and admin role.",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "Page number (1-based)" },
+            { name: "pageSize", in: "query", schema: { type: "integer", default: 20, maximum: 100 }, description: "Items per page (max 100)" },
+          ],
+          responses: {
+            "200": {
+              description: "Paginated full list of spots",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { $ref: "#/components/schemas/PaginationMeta" },
+                      { type: "object", properties: { spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden — admin role required", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "No spots found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/my-spots": {
+        get: {
+          tags: ["Spots"],
+          summary: "Get spots of the authenticated user",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "Page number (1-based)" },
+            { name: "pageSize", in: "query", schema: { type: "integer", default: 20, maximum: 100 }, description: "Items per page (max 100)" },
+          ],
+          responses: {
+            "200": {
+              description: "Paginated spots belonging to the current user",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { $ref: "#/components/schemas/PaginationMeta" },
+                      { type: "object", properties: { spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/slug/{slug}": {
+        get: {
+          tags: ["Spots"],
+          summary: "Get a spot by slug",
+          parameters: [
+            { name: "slug", in: "path", required: true, schema: { type: "string" }, example: "golden-beach-abc12" },
+          ],
+          responses: {
+            "200": {
+              description: "Spot found",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots": {
+        post: {
+          tags: ["Spots"],
+          summary: "Create a new spot",
+          security: [{ cookieAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["name"],
+                  properties: {
+                    name: { type: "string", minLength: 2, maxLength: 100, example: "Golden Beach" },
+                    address: { type: "string", maxLength: 200, example: "Via del Mare 1" },
+                    place: { type: "string", maxLength: 100, example: "Sardegna" },
+                    description: { type: "string", maxLength: 2000, example: "A beautiful golden beach" },
+                    images: { type: "array", items: { type: "string" }, example: ["https://cdn.example.com/img1.jpg"] },
+                    latitude: { type: "number", example: 39.2238 },
+                    longitude: { type: "number", example: 9.1217 },
+                    public: { type: "boolean", example: true },
+                    tags: { type: "array", items: { type: "string" }, description: "Array of tag IDs", example: ["cltag789"] },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "201": {
+              description: "Spot created successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ValidationErrorResponse" } } } },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/{id}": {
+        get: {
+          tags: ["Spots"],
+          summary: "Get a spot by ID",
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          responses: {
+            "200": {
+              description: "Spot found",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+        put: {
+          tags: ["Spots"],
+          summary: "Update a spot",
+          description: "Spot owner or admin can update. Tags array replaces existing associations.",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string", minLength: 2, maxLength: 100 },
+                    address: { type: "string", maxLength: 200 },
+                    place: { type: "string", maxLength: 100 },
+                    description: { type: "string", maxLength: 2000 },
+                    images: { type: "array", items: { type: "string" } },
+                    latitude: { type: "number" },
+                    longitude: { type: "number" },
+                    public: { type: "boolean" },
+                    active: { type: "boolean" },
+                    tags: { type: "array", items: { type: "string" }, description: "Tag IDs — replaces existing" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Spot updated successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ValidationErrorResponse" } } } },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden — not the owner", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+        delete: {
+          tags: ["Spots"],
+          summary: "Delete a spot",
+          description: "Spot owner or admin can delete.",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          responses: {
+            "200": {
+              description: "Spot deleted successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { message: { type: "string", example: "Spot deleted" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden — not the owner", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/{id}/toggle-active": {
+        patch: {
+          tags: ["Spots"],
+          summary: "Toggle spot active status",
+          description: "Flips the active flag. Spot owner or admin only.",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          responses: {
+            "200": {
+              description: "Active status toggled",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
+      "/spots/{id}/toggle-public": {
+        patch: {
+          tags: ["Spots"],
+          summary: "Toggle spot public visibility",
+          description: "Flips the public flag. Spot owner or admin only.",
+          security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "id", in: "path", required: true, schema: { type: "string" }, example: "clspot456" },
+          ],
+          responses: {
+            "200": {
+              description: "Public status toggled",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      { type: "object", properties: { spot: { $ref: "#/components/schemas/Spot" } } },
+                    ],
+                  },
+                },
+              },
+            },
+            "401": { description: "Not authenticated", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "403": { description: "Forbidden", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "Spot not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
           },
         },
       },
