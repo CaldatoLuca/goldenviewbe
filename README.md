@@ -155,7 +155,16 @@ Full interactive documentation is available at `/docs` (Swagger UI).
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `GET` | `/spots/get-all` | No | List all spots |
+| `GET` | `/spots/get-all` | No | List all public + active spots |
+| `GET` | `/spots/admin/all` | Admin | List all spots (including private/inactive) |
+| `GET` | `/spots/my-spots` | Yes | Spots belonging to the authenticated user |
+| `GET` | `/spots/slug/:slug` | No | Get spot by slug |
+| `GET` | `/spots/:id` | No | Get spot by ID |
+| `POST` | `/spots` | Yes | Create a spot (`name` required; optionally `address`, `place`, `description`, `images`, `latitude`, `longitude`, `public`, `tags`) |
+| `PUT` | `/spots/:id` | Yes (owner/admin) | Update a spot (partial; `tags` replaces existing) |
+| `DELETE` | `/spots/:id` | Yes (owner/admin) | Delete a spot |
+| `PATCH` | `/spots/:id/toggle-active` | Yes (owner/admin) | Toggle active flag |
+| `PATCH` | `/spots/:id/toggle-public` | Yes (owner/admin) | Toggle public flag |
 
 ### Tags
 
