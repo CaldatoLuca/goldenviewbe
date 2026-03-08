@@ -11,6 +11,7 @@ import {
   getById,
   getBySlug,
   getMySpots,
+  getNearby,
   create,
   update,
   remove,
@@ -22,6 +23,7 @@ const router = Router();
 
 // ─── Public ──────────────────────────────────────────────────────────────────
 router.get("/get-all", getAll);
+router.get("/nearby", getNearby);
 router.get("/slug/:slug", getBySlug);
 
 // ─── Admin only ───────────────────────────────────────────────────────────────

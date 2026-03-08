@@ -84,6 +84,78 @@ export class SpotService extends BaseService<typeof prisma.spot> {
     return { spots, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
+  async getNearby(
+    lat: number,
+    lon: number,
+    radiusKm: number,
+    page: number,
+    pageSize: number,
+  ) {
+    type RawRow = { id: string; distance_km: number };
+
+    const [countResult, rows] = await Promise.all([
+      prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(*)::bigint AS count FROM (
+          SELECT id,
+            (6371.0 * acos(
+              LEAST(1.0::float8,
+                cos(radians(${lat}::float8)) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lon}::float8))
+                + sin(radians(${lat}::float8)) * sin(radians(latitude))
+              )
+            )) AS distance_km
+          FROM "Spot"
+          WHERE public = true AND active = true
+            AND latitude IS NOT NULL AND longitude IS NOT NULL
+        ) AS h
+        WHERE h.distance_km <= ${radiusKm}::float8
+      `,
+      prisma.$queryRaw<RawRow[]>`
+        SELECT id, distance_km FROM (
+          SELECT id,
+            (6371.0 * acos(
+              LEAST(1.0::float8,
+                cos(radians(${lat}::float8)) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lon}::float8))
+                + sin(radians(${lat}::float8)) * sin(radians(latitude))
+              )
+            )) AS distance_km
+          FROM "Spot"
+          WHERE public = true AND active = true
+            AND latitude IS NOT NULL AND longitude IS NOT NULL
+        ) AS h
+        WHERE h.distance_km <= ${radiusKm}::float8
+        ORDER BY h.distance_km ASC
+        LIMIT ${pageSize}::int OFFSET ${(page - 1) * pageSize}::int
+      `,
+    ]);
+
+    const total = Number(countResult[0].count);
+
+    if (!rows.length) {
+      return { spots: [], total, page, pageSize, totalPages: 0 };
+    }
+
+    const distanceMap = new Map(rows.map((r) => [r.id, Number(r.distance_km)]));
+    const orderedIds = rows.map((r) => r.id);
+
+    const spots = await prisma.spot.findMany({
+      where: { id: { in: orderedIds } },
+      include: spotInclude,
+    });
+
+    const sorted = orderedIds
+      .map((id) => spots.find((s) => s.id === id)!)
+      .filter(Boolean)
+      .map((s) => ({ ...s, distanceKm: distanceMap.get(s.id)! }));
+
+    return {
+      spots: sorted,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
   async createSpot(
     data: {
       name: string;

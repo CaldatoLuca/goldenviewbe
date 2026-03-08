@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { spotService } from "../services/spot.service.js";
+import { nearbyQuerySchema } from "../schemas/spot.schemas.js";
 
 function parsePagination(query: Request["query"], defaultPageSize = 20) {
   const page = Math.max(1, parseInt(query.page as string) || 1);
@@ -156,6 +157,34 @@ export const togglePublic = async (
     const { id } = req.params as { id: string };
     const spot = await spotService.togglePublic(id, req.userId!, req.isAdmin ?? false);
     res.status(200).json({ success: true, spot });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getNearby = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsed = nearbyQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, error: { message: "Invalid query parameters", issues: parsed.error.issues } });
+    }
+    const { lat, lon, radius, page, pageSize } = parsed.data;
+    const result = await spotService.getNearby(lat, lon, radius, page, pageSize);
+
+    if (!result.total) {
+      return res.status(404).json({ success: false, message: "No spots found within the given radius" });
+    }
+
+    res.status(200).json({
+      success: true,
+      center: { lat, lon },
+      radiusKm: radius,
+      ...result,
+    });
   } catch (error: any) {
     next(error);
   }
