@@ -332,6 +332,62 @@ const options: swaggerJsdoc.Options = {
           },
         },
       },
+      "/spots/nearby": {
+        get: {
+          tags: ["Spots"],
+          summary: "Find spots near a coordinate (Haversine)",
+          description: "Returns public active spots within a given radius from the provided coordinates, sorted by distance ascending. Distance is calculated using the Haversine formula.",
+          parameters: [
+            { name: "lat", in: "query", required: true, schema: { type: "number", minimum: -90, maximum: 90 }, example: 39.2238, description: "Latitude of the search centre" },
+            { name: "lon", in: "query", required: true, schema: { type: "number", minimum: -180, maximum: 180 }, example: 9.1217, description: "Longitude of the search centre" },
+            { name: "radius", in: "query", schema: { type: "number", default: 10, maximum: 500 }, description: "Search radius in kilometres (default 10, max 500)" },
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "Page number (1-based)" },
+            { name: "pageSize", in: "query", schema: { type: "integer", default: 20, maximum: 100 }, description: "Items per page (max 100)" },
+          ],
+          responses: {
+            "200": {
+              description: "Spots within radius, sorted by distance",
+              content: {
+                "application/json": {
+                  schema: {
+                    allOf: [
+                      { $ref: "#/components/schemas/SuccessResponse" },
+                      {
+                        type: "object",
+                        properties: {
+                          center: {
+                            type: "object",
+                            properties: {
+                              lat: { type: "number", example: 39.2238 },
+                              lon: { type: "number", example: 9.1217 },
+                            },
+                          },
+                          radiusKm: { type: "number", example: 10 },
+                          total: { type: "integer", example: 5 },
+                          page: { type: "integer", example: 1 },
+                          pageSize: { type: "integer", example: 20 },
+                          totalPages: { type: "integer", example: 1 },
+                          spots: {
+                            type: "array",
+                            items: {
+                              allOf: [
+                                { $ref: "#/components/schemas/Spot" },
+                                { type: "object", properties: { distanceKm: { type: "number", example: 2.34, description: "Distance from the search centre in km" } } },
+                              ],
+                            },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            "400": { description: "Missing or invalid query parameters", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+            "404": { description: "No spots found within the given radius", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          },
+        },
+      },
       "/spots/get-all": {
         get: {
           tags: ["Spots"],

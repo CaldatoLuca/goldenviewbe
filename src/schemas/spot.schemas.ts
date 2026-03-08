@@ -24,3 +24,11 @@ export const updateSpotSchema = z.object({
   active: z.boolean().optional(),
   tags: z.array(z.string()).optional(),
 });
+
+export const nearbyQuerySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lon: z.coerce.number().min(-180).max(180),
+  radius: z.coerce.number().positive().max(500).default(10),
+  page: z.coerce.number().int().positive().default(1),
+  pageSize: z.coerce.number().int().positive().max(100).default(20),
+});
