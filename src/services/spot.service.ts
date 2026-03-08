@@ -178,7 +178,7 @@ export class SpotService extends BaseService<typeof prisma.spot> {
         ...spotData,
         slug,
         userId,
-        tags: tags ? { connect: tags.map((id) => ({ id })) } : undefined,
+        ...(tags ? { tags: { connect: tags.map((id) => ({ id })) } } : {}),
       },
       include: spotInclude,
     });
@@ -213,9 +213,7 @@ export class SpotService extends BaseService<typeof prisma.spot> {
       where: { id },
       data: {
         ...spotData,
-        tags: tags
-          ? { set: tags.map((tagId) => ({ id: tagId })) }
-          : undefined,
+        ...(tags ? { tags: { set: tags.map((tagId) => ({ id: tagId })) } } : {}),
       },
       include: spotInclude,
     });

@@ -15,4 +15,12 @@ export const config = {
   uplouploadthingToken: process.env.UPLOADTHING_TOKEN,
   jwtAccess: process.env.JWT_ACCESS_SECRET!,
   jwtRefresh: process.env.JWT_REFRESH_SECRET!,
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
+  smtp: {
+    host: process.env.SMTP_HOST!,
+    port: Number(process.env.SMTP_PORT) || 587,
+    user: process.env.SMTP_USER!,
+    pass: process.env.SMTP_PASS!,
+    from: process.env.SMTP_FROM || "noreply@goldenview.app",
+  },
 };
