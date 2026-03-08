@@ -23,19 +23,32 @@ export class SpotService extends BaseService<typeof prisma.spot> {
     super(prisma.spot);
   }
 
-  async getAllPublic() {
-    return prisma.spot.findMany({
-      where: { public: true, active: true },
-      include: spotInclude,
-      orderBy: { createdAt: "desc" },
-    });
+  async getAllPublic(page: number, pageSize: number) {
+    const where = { public: true, active: true };
+    const [total, spots] = await Promise.all([
+      prisma.spot.count({ where }),
+      prisma.spot.findMany({
+        where,
+        include: spotInclude,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
+    return { spots, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
-  async getAllAdmin() {
-    return prisma.spot.findMany({
-      include: spotInclude,
-      orderBy: { createdAt: "desc" },
-    });
+  async getAllAdmin(page: number, pageSize: number) {
+    const [total, spots] = await Promise.all([
+      prisma.spot.count(),
+      prisma.spot.findMany({
+        include: spotInclude,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
+    return { spots, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
   async findByIdWithRelations(id: string) {
@@ -56,12 +69,19 @@ export class SpotService extends BaseService<typeof prisma.spot> {
     return spot;
   }
 
-  async getMySpots(userId: string) {
-    return prisma.spot.findMany({
-      where: { userId },
-      include: spotInclude,
-      orderBy: { createdAt: "desc" },
-    });
+  async getMySpots(userId: string, page: number, pageSize: number) {
+    const where = { userId };
+    const [total, spots] = await Promise.all([
+      prisma.spot.count({ where }),
+      prisma.spot.findMany({
+        where,
+        include: spotInclude,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
+    return { spots, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 
   async createSpot(

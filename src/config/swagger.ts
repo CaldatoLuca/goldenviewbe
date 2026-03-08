@@ -67,6 +67,15 @@ const options: swaggerJsdoc.Options = {
             updatedAt: { type: "string", format: "date-time" },
           },
         },
+        PaginationMeta: {
+          type: "object",
+          properties: {
+            total: { type: "integer", example: 42 },
+            page: { type: "integer", example: 1 },
+            pageSize: { type: "integer", example: 20 },
+            totalPages: { type: "integer", example: 3 },
+          },
+        },
         SuccessResponse: {
           type: "object",
           properties: {
@@ -327,31 +336,27 @@ const options: swaggerJsdoc.Options = {
         get: {
           tags: ["Spots"],
           summary: "Get all public active spots",
-          description: "Returns all spots that are both public and active. No authentication required.",
+          description: "Returns paginated spots that are both public and active. No authentication required.",
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "Page number (1-based)" },
+            { name: "pageSize", in: "query", schema: { type: "integer", default: 20, maximum: 100 }, description: "Items per page (max 100)" },
+          ],
           responses: {
             "200": {
-              description: "List of public active spots",
+              description: "Paginated list of public active spots",
               content: {
                 "application/json": {
                   schema: {
                     allOf: [
                       { $ref: "#/components/schemas/SuccessResponse" },
-                      {
-                        type: "object",
-                        properties: {
-                          total: { type: "integer", example: 3 },
-                          spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } },
-                        },
-                      },
+                      { $ref: "#/components/schemas/PaginationMeta" },
+                      { type: "object", properties: { spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } } } },
                     ],
                   },
                 },
               },
             },
-            "404": {
-              description: "No spots found",
-              content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } },
-            },
+            "404": { description: "No spots found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
           },
         },
       },
@@ -359,23 +364,22 @@ const options: swaggerJsdoc.Options = {
         get: {
           tags: ["Spots"],
           summary: "Get all spots (admin)",
-          description: "Returns every spot regardless of public/active status. Requires authentication and admin role.",
+          description: "Returns paginated spots regardless of public/active status. Requires authentication and admin role.",
           security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "Page number (1-based)" },
+            { name: "pageSize", in: "query", schema: { type: "integer", default: 20, maximum: 100 }, description: "Items per page (max 100)" },
+          ],
           responses: {
             "200": {
-              description: "Full list of spots",
+              description: "Paginated full list of spots",
               content: {
                 "application/json": {
                   schema: {
                     allOf: [
                       { $ref: "#/components/schemas/SuccessResponse" },
-                      {
-                        type: "object",
-                        properties: {
-                          total: { type: "integer", example: 10 },
-                          spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } },
-                        },
-                      },
+                      { $ref: "#/components/schemas/PaginationMeta" },
+                      { type: "object", properties: { spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } } } },
                     ],
                   },
                 },
@@ -392,21 +396,20 @@ const options: swaggerJsdoc.Options = {
           tags: ["Spots"],
           summary: "Get spots of the authenticated user",
           security: [{ cookieAuth: [] }],
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "Page number (1-based)" },
+            { name: "pageSize", in: "query", schema: { type: "integer", default: 20, maximum: 100 }, description: "Items per page (max 100)" },
+          ],
           responses: {
             "200": {
-              description: "Spots belonging to the current user",
+              description: "Paginated spots belonging to the current user",
               content: {
                 "application/json": {
                   schema: {
                     allOf: [
                       { $ref: "#/components/schemas/SuccessResponse" },
-                      {
-                        type: "object",
-                        properties: {
-                          total: { type: "integer", example: 2 },
-                          spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } },
-                        },
-                      },
+                      { $ref: "#/components/schemas/PaginationMeta" },
+                      { type: "object", properties: { spots: { type: "array", items: { $ref: "#/components/schemas/Spot" } } } },
                     ],
                   },
                 },
