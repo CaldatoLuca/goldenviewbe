@@ -18,6 +18,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:3001",
   "https://goldenview-admin.netlify.app",
   "https://goldenviewadmin.netlify.app",
   "https://gw-admin-livid.vercel.app",

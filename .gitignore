@@ -5,8 +5,8 @@ node_modules/
 dist/
 
 # Variabili d'ambiente
-.env
-.env.*
+.env.development
+.env.production
 
 # Log (se compaiono)
 *.log

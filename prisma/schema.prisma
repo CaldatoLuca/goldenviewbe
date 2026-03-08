@@ -27,6 +27,7 @@ model Spot {
 
   @@index([createdAt])
   @@index([userId])
+  @@index([latitude, longitude])
 }
 
 model Tag {
